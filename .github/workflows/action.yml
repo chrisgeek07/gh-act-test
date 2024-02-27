@@ -1,0 +1,31 @@
+name: CI/CD Pipeline frontend project
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+  deploy:
+      runs-on: ubuntu-latest
+      needs: [build]
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+    
+        - name: Deploy to Hosting Server via SSH
+          run: |
+            npm run build # Ensure your build script is defined in package.json
+            ssh-keyscan -H <your-hostname> >> ~/.ssh/known_hosts
+            scp -r <path/to/your/built/files> <username>@<hostname>:<remote/path>
+          env:
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
